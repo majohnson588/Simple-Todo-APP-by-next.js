@@ -7,10 +7,14 @@ interface TodoListProps {
 }
 
 const TodoList: React.FC<TodoListProps> = ({ tasks }) => {
-  return (
-    <div className='overflow-x-auto'>
-      <table className='table w-full'>
-        {/* head */}
+return (
+  <div className="overflow-x-auto">
+    {tasks.length === 0 ? (
+      <div className="text-center text-gray-500 italic py-6">
+        No tasks yet. Try adding one above!
+      </div>
+    ) : (
+      <table className="table w-full">
         <thead>
           <tr>
             <th>Tasks</th>
@@ -23,8 +27,10 @@ const TodoList: React.FC<TodoListProps> = ({ tasks }) => {
           ))}
         </tbody>
       </table>
-    </div>
-  );
+    )}
+  </div>
+);
+
 };
 
 export default TodoList;

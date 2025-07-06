@@ -39,8 +39,7 @@ const Task: React.FC<TaskProps> = ({ task }) => {
       <td className='flex gap-5'>
         <FiEdit
           onClick={() => setOpenModalEdit(true)}
-          cursor='pointer'
-          className='text-blue-500'
+          className='text-blue-500 hover:scale-110 transition-transform cursor-pointer'
           size={25}
         />
         <Modal modalOpen={openModalEdit} setModalOpen={setOpenModalEdit}>
@@ -60,10 +59,10 @@ const Task: React.FC<TaskProps> = ({ task }) => {
             </div>
           </form>
         </Modal>
+
         <FiTrash2
           onClick={() => setOpenModalDeleted(true)}
-          cursor='pointer'
-          className='text-red-500'
+          className='text-red-500 hover:scale-110 transition-transform cursor-pointer'
           size={25}
         />
         <Modal modalOpen={openModalDeleted} setModalOpen={setOpenModalDeleted}>
