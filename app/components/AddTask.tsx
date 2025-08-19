@@ -7,12 +7,12 @@ import { addTodo } from "@/api";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
-
+// RHF + Zod
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-
+// 表单校验规则：先 trim，再长度限制
 const taskFormSchema = z.object({
   text: z
     .string()
@@ -27,16 +27,14 @@ const AddTask = () => {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
-
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting, isValid, isDirty },
-    watch,
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
-    mode: "onChange", 
+    mode: "onChange",
     defaultValues: { text: "" },
   });
 
@@ -45,11 +43,10 @@ const AddTask = () => {
       id: uuidv4(),
       text: text.trim(),
     });
-    reset(); 
-    setModalOpen(false); 
-    router.refresh(); 
+    reset();
+    setModalOpen(false);
+    router.refresh();
   };
-
 
   const closeModal = () => {
     reset();
@@ -65,9 +62,7 @@ const AddTask = () => {
         Add new task <AiOutlinePlus size={18} />
       </button>
 
-     <Modal modalOpen={modalOpen} setModalOpen={setModalOpen}>
-
-        {}
+      <Modal modalOpen={modalOpen} setModalOpen={setModalOpen}>
         <form onSubmit={handleSubmit(onSubmit)} className="w-full">
           <h3 className="font-bold text-lg mb-3">Add new task</h3>
 
@@ -99,7 +94,7 @@ const AddTask = () => {
             </button>
             <button
               type="submit"
-              className={`btn ${isSubmitting ? "btn-disabled" : "btn-primary"}`}
+              className="btn btn-primary"
               disabled={!isValid || !isDirty || isSubmitting}
             >
               {isSubmitting ? "Submitting..." : "Submit"}
