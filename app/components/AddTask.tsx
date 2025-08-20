@@ -1,59 +1,104 @@
 "use client";
 
 import { AiOutlinePlus } from "react-icons/ai";
-import { FormEventHandler, useState } from "react";
+import Modal from "./Modal";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { addTodo } from "@/api";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
-import Modal from "./Modal";
+// Zod：先 trim 再限制长度
+const taskFormSchema = z.object({
+  text: z
+    .string()
+    .trim()
+    .min(3, "Task must be at least 3 characters long")
+    .max(100, "Task must be less than 100 characters"),
+});
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+type TaskFormData = z.infer<typeof taskFormSchema>;
 
 const AddTask = () => {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
-  const [newTaskValue, setNewTaskValue] = useState("");
 
-  const handleSubmitNewTodo: FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<TaskFormData>({
+    resolver: zodResolver(taskFormSchema),
+    mode: "onChange", // 输入即校验
+    defaultValues: { text: "" },
+  });
 
-    await addTodo({
-      id: uuidv4(),
-      text: newTaskValue,
-    });
+  const onSubmit = async (data: TaskFormData) => {
+    try {
+      await addTodo({
+        id: uuidv4(),
+        text: data.text,
+      });
+      reset();
+      setModalOpen(false);
+      router.refresh();
+    } catch (error: unknown) {
+      console.error("Failed to add task:", error);
+ 
+      setError("text", {
+        type: "server",
+        message: "Failed to add task. Please try again.",
+      });
+    }
+  };
 
-    setNewTaskValue("");
-    setModalOpen(false);
-    router.refresh();
+  const handleModalOpenChange = (open: boolean) => {
+    setModalOpen(open);
+    if (!open) reset();
   };
 
   return (
     <div>
-      {}
-      <Button
+      <button
         onClick={() => setModalOpen(true)}
-        className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold w-full sm:w-auto"
+        className="flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md transition w-full sm:w-auto"
       >
         Add new task <AiOutlinePlus size={18} />
-      </Button>
+      </button>
 
-      <Modal modalOpen={modalOpen} setModalOpen={setModalOpen}>
-        <form onSubmit={handleSubmitNewTodo}>
+      <Modal modalOpen={modalOpen} setModalOpen={handleModalOpenChange}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <h3 className="font-bold text-lg">Add new task</h3>
 
-          <div className="w-full flex items-center gap-4 mt-4">
-            {}
-            <Input
-              value={newTaskValue}
-              onChange={(e) => setNewTaskValue(e.target.value)}
-              placeholder="Type your task"
-              className="w-full"
+          <div className="space-y-2">
+            <input
+              {...register("text")}
+              type="text"
+              placeholder="Type here"
+              maxLength={100}
+              aria-invalid={!!errors.text}
+              aria-describedby={errors.text ? "text-error" : undefined}
+              className={`input input-bordered w-full ${errors.text ? "input-error" : ""}`}
             />
+            {errors.text && (
+              <p id="text-error" className="text-error text-sm" role="alert">
+                {errors.text.message}
+              </p>
+            )}
+          </div>
 
-            {}
-            <Button type="submit">Submit</Button>
+          <div className="modal-action">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting || !isValid}
+            >
+              {isSubmitting ? "Adding..." : "Submit"}
+            </button>
           </div>
         </form>
       </Modal>
