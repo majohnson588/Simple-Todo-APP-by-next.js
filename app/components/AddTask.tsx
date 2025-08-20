@@ -10,55 +10,51 @@ import { addTodo } from "@/api";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
-// Define Zod schema for form validation
+// Zod：先 trim 再限制长度
 const taskFormSchema = z.object({
   text: z
     .string()
-    .min(3, "Task must be at least 3 characters long")
-    .max(100, "Task must be less than 100 characters")
     .trim()
-    .refine((val) => val.length > 0, "Task text is required"),
+    .min(3, "Task must be at least 3 characters long")
+    .max(100, "Task must be less than 100 characters"),
 });
 
-// Infer TypeScript type from Zod schema
 type TaskFormData = z.infer<typeof taskFormSchema>;
 
 const AddTask = () => {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-  
-  // Use React Hook Form with Zod resolver
+
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting }
+    setError,
+    formState: { errors, isSubmitting, isValid },
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
-    defaultValues: {
-      text: ""
-    }
+    mode: "onChange", // 输入即校验
+    defaultValues: { text: "" },
   });
 
-  // Handle form submission
   const onSubmit = async (data: TaskFormData) => {
     try {
       await addTodo({
         id: uuidv4(),
         text: data.text,
       });
-      
-      // Reset form and close modal
       reset();
       setModalOpen(false);
       router.refresh();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to add task:", error);
-      // Error notification can be added here
+      setError("text", {
+        type: "server",
+        message: "Failed to add task. Please try again.",
+      });
     }
   };
 
-  // Reset form when closing modal
   const handleCloseModal = () => {
     setModalOpen(false);
     reset();
@@ -75,31 +71,32 @@ const AddTask = () => {
 
       <Modal modalOpen={modalOpen} setModalOpen={handleCloseModal}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <h3 className='font-bold text-lg'>Add new task</h3>
-          
-          <div className='space-y-2'>
+          <h3 className="font-bold text-lg">Add new task</h3>
+
+          <div className="space-y-2">
             <input
               {...register("text")}
-              type='text'
-              placeholder='Type here'
-              className={`input input-bordered w-full ${
-                errors.text ? 'input-error' : ''
-              }`}
+              type="text"
+              placeholder="Type here"
+              maxLength={100}
+              aria-invalid={!!errors.text}
+              aria-describedby={errors.text ? "text-error" : undefined}
+              className={`input input-bordered w-full ${errors.text ? "input-error" : ""}`}
             />
-            
-            {/* Error message */}
             {errors.text && (
-              <p className="text-error text-sm">{errors.text.message}</p>
+              <p id="text-error" className="text-error text-sm" role="alert">
+                {errors.text.message}
+              </p>
             )}
           </div>
 
-          <div className='modal-action'>
-            <button 
-              type='submit' 
-              className='btn btn-primary'
-              disabled={isSubmitting}
+          <div className="modal-action">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting || !isValid}
             >
-              {isSubmitting ? 'Adding...' : 'Submit'}
+              {isSubmitting ? "Adding..." : "Submit"}
             </button>
           </div>
         </form>

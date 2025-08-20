@@ -1,25 +1,38 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Sun, Moon } from "lucide-react";
 
 const ThemeToggle = () => {
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const { theme, setTheme } = useTheme();
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => (prev === "dark" ? "light" : "dark"));
-  };
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  
+  if (!mounted) {
+    return (
+      <Button variant="outline" size="sm" className="gap-2">
+        {}
+      </Button>
+    );
+  }
+
+  const isDark = theme === "dark" || theme === undefined; 
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="btn btn-sm btn-outline"
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="gap-2"
     >
-      Switch to {theme === "dark" ? "Light" : "Dark"} Mode
-    </button>
+      {isDark ? <Sun size={16} /> : <Moon size={16} />}
+      {isDark ? "Light" : "Dark"} Mode
+    </Button>
   );
 };
 
