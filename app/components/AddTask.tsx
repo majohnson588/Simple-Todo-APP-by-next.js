@@ -23,7 +23,7 @@ type TaskFormData = z.infer<typeof taskFormSchema>;
 
 const AddTask = () => {
   const router = useRouter();
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const {
     register,
@@ -48,7 +48,6 @@ const AddTask = () => {
       router.refresh();
     } catch (error: unknown) {
       console.error("Failed to add task:", error);
- 
       setError("text", {
         type: "server",
         message: "Failed to add task. Please try again.",
@@ -56,9 +55,9 @@ const AddTask = () => {
     }
   };
 
-  const handleModalOpenChange = (open: boolean) => {
-    setModalOpen(open);
-    if (!open) reset();
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    reset();
   };
 
   return (
@@ -70,7 +69,7 @@ const AddTask = () => {
         Add new task <AiOutlinePlus size={18} />
       </button>
 
-      <Modal modalOpen={modalOpen} setModalOpen={handleModalOpenChange}>
+      <Modal modalOpen={modalOpen} setModalOpen={handleCloseModal}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <h3 className="font-bold text-lg">Add new task</h3>
 
